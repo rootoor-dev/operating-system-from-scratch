@@ -90,3 +90,113 @@ But we're not done managing screen having little cursor indicating current posit
 But there's small problem yes another small problem always small problems position takes 16 bits while input-output port can only transmit 8 bits at once! So 16 bits too much doesn’t fit—to solve issue we'll actually use two ports: port 0x3D4 indicates graphics card sending high bits cursor position then via port 0x3D5 send low bits indicating sending last eight bits boom sent now cursor easily updated every time write screen!
 
 Last important point we'd like scroll when reach end screen yes must do everything ourselves! To achieve when reach last line simply shift all characters grid down one...
+
+# Codes of the bootloader
+
+Here’s the code for a simple bootloader that displays "Hello World" on the screen:
+
+```assembly
+; Bootloader code to display "Hello World"
+section .text
+    global _start
+
+_start:
+    ; Set up the video mode (text mode)
+    mov ax, 0x0003  ; Set video mode to 80x25 text
+    int 0x10        ; BIOS interrupt to set video mode
+
+    ; Display "Hello World"
+    mov si, message  ; Load address of the message
+.next_char:
+    lodsb            ; Load next byte from [si] into al
+    cmp al, 0       ; Check for null terminator
+    je .done        ; If zero, we are done
+    mov ah, 0x0E    ; BIOS function to write character
+    int 0x10        ; Call BIOS to display character
+    jmp .next_char  ; Repeat for next character
+
+.done:
+    jmp .done       ; Infinite loop to keep the program running
+
+section .data
+message db 'Hello World!', 0  ; Null-terminated string
+```
+
+### Explanation:
+- **Video Mode Setup**: The bootloader sets the video mode to 80x25 text using BIOS interrupt `int 0x10`.
+- **Display Loop**: It loops through each character in the string "Hello World!" and uses `int 0x10` with function `0x0E` to display each character on the screen.
+- **Infinite Loop**: After displaying the message, it enters an infinite loop to keep the program running.
+
+This code should be assembled and placed in the boot sector of a disk image for testing.
+
+# Simple bootloader
+
+To create a simple bootloader in assembly, follow these steps:
+
+1. **Set Up the Bootloader**: Your bootloader must be exactly 512 bytes and end with a specific binary signature. This allows the BIOS to recognize it during the boot process.
+
+2. **Write the Code**: Use assembly language to write the bootloader code. The first instruction should set the video mode to text mode using BIOS interrupt `int 0x10`.
+
+3. **Display "Hello World"**: Load the string "Hello World!" into memory and use a loop to display each character on the screen by calling BIOS interrupt `int 0x10` with the appropriate registers.
+
+4. **Infinite Loop**: After displaying the message, implement an infinite loop to prevent the CPU from executing random data that could lead to a crash.
+
+5. **Compile and Link**: Assemble your code into a binary file, ensuring it is exactly 512 bytes by padding with zeros if necessary.
+
+6. **Create a Bootable Disk Image**: Combine your bootloader code with any operating system code you wish to load, ensuring that the OS code follows immediately after the bootloader in the disk image.
+
+7. **Test Your Bootloader**: Use an emulator or a virtual machine to test your bootloader and ensure it displays "Hello World" as expected.
+
+Here’s an example of a simple bootloader code in assembly:
+
+```assembly
+; Simple Bootloader Code
+section .text
+    global _start
+
+_start:
+    ; Set video mode to 80x25 text
+    mov ax, 0x0003
+    int 0x10
+
+    ; Display "Hello World!"
+    mov si, message
+.next_char:
+    lodsb
+    cmp al, 0
+    je .done
+    mov ah, 0x0E
+    int 0x10
+    jmp .next_char
+
+.done:
+    jmp .done
+
+section .data
+message db 'Hello World!', 0
+```
+
+### Explanation of Key Parts:
+- **Video Mode**: The BIOS interrupt `int 0x10` is used to set the video mode.
+- **Character Display**: Each character is displayed using a loop that reads from the message string.
+- **Infinite Loop**: The program enters an infinite loop after displaying the message to keep running without crashing.
+
+This code should be assembled and placed in a bootable disk image for testing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
